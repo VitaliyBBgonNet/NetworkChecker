@@ -1,8 +1,7 @@
-// Обработчик отправки формы
-document.getElementById('checkForm').addEventListener('submit', async function(event) {
-    event.preventDefault(); // Предотвращаем стандартную отправку формы
 
-    // Показываем спиннер и меняем текст кнопки
+document.getElementById('checkForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
     const submitButton = document.getElementById('submitButton');
     const buttonText = document.getElementById('buttonText');
     const loadingSpinner = document.getElementById('loadingSpinner');
@@ -10,13 +9,11 @@ document.getElementById('checkForm').addEventListener('submit', async function(e
     loadingSpinner.classList.remove('d-none');
     submitButton.disabled = true;
 
-    // Получаем значения из формы
     const host = document.getElementById('host').value;
     const user = document.getElementById('user').value;
     const password = document.getElementById('password').value;
     const command = document.getElementById('command').value;
 
-    // Формируем URL для запроса к API
     let apiUrl = `/api/check?host=${encodeURIComponent(host)}&command=${encodeURIComponent(command)}`;
     if (user) {
         apiUrl += `&user=${encodeURIComponent(user)}`;
@@ -26,18 +23,16 @@ document.getElementById('checkForm').addEventListener('submit', async function(e
     }
 
     try {
-        // Отправляем запрос к API
+
         const response = await fetch(apiUrl);
         if (!response.ok) {
             throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
 
-        // Отображаем базовые результаты
         document.getElementById('resultHost').textContent = data.host;
         document.getElementById('resultReachable').textContent = data.reachable;
 
-        // Обрабатываем вывод команды
         const outputElement = document.getElementById('resultCommandOutput');
         const diskChartsElement = document.getElementById('diskUsageCharts');
         const memoryChartsElement = document.getElementById('memoryUsageCharts');
@@ -48,7 +43,6 @@ document.getElementById('checkForm').addEventListener('submit', async function(e
         const openPortsTableBody = document.getElementById('openPortsTableBody');
         const speedTestTableBody = document.getElementById('speedTestTableBody');
 
-        // Очищаем предыдущие графики и текст
         outputElement.classList.add('d-none');
         diskChartsElement.classList.add('d-none');
         memoryChartsElement.classList.add('d-none');
@@ -59,34 +53,26 @@ document.getElementById('checkForm').addEventListener('submit', async function(e
         openPortsTableBody.innerHTML = '';
         speedTestTableBody.innerHTML = '';
 
-        // В зависимости от команды обрабатываем результат
         if (command === 'df -h' && data.commandOutput) {
-            // Парсим вывод команды df -h (Disk Usage)
             const disks = parseDiskUsage(data.commandOutput);
             displayDiskUsageTable(disks, diskTableBody);
             diskChartsElement.classList.remove('d-none');
         } else if (command === 'free -m' && data.commandOutput) {
-            // Парсим вывод команды free -m (Memory Usage)
             const memoryData = parseMemoryUsage(data.commandOutput);
             displayMemoryUsageTable(memoryData, memoryTableBody);
             memoryChartsElement.classList.remove('d-none');
         } else if (command === 'netstat -tuln' && data.commandOutput) {
-            // Парсим вывод команды netstat -tuln (Open Ports)
             const ports = parseOpenPorts(data.commandOutput);
             displayOpenPortsTable(ports, openPortsTableBody);
             openPortsElement.classList.remove('d-none');
         } else if (command === 'speed-test') {
-            // Выполняем тест скорости
             const speedData = await performSpeedTest();
             displaySpeedTestTable(speedData, speedTestTableBody);
             speedTestElement.classList.remove('d-none');
         } else {
-            // Для других команд отображаем текст
             outputElement.textContent = data.commandOutput || 'N/A';
             outputElement.classList.remove('d-none');
         }
-
-        // Показываем блок с результатами
         document.getElementById('result').classList.remove('d-none');
     } catch (error) {
         console.error('Error during API request:', error);
@@ -100,24 +86,20 @@ document.getElementById('checkForm').addEventListener('submit', async function(e
         document.getElementById('speedTestTable').classList.add('d-none');
         document.getElementById('result').classList.remove('d-none');
     } finally {
-        // Скрываем спиннер и возвращаем кнопку в исходное состояние
         buttonText.textContent = 'Check Host';
         loadingSpinner.classList.add('d-none');
         submitButton.disabled = false;
     }
 });
 
-// Функция для парсинга вывода команды df -h (Disk Usage)
 function parseDiskUsage(output) {
     const lines = output.trim().split('\n');
     const disks = [];
 
-    // Пропускаем заголовок (первая строка)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Разделяем строку по пробелам (учитываем множественные пробелы)
         const parts = line.split(/\s+/);
         if (parts.length < 6) continue;
 
@@ -135,27 +117,24 @@ function parseDiskUsage(output) {
     return disks;
 }
 
-// Функция для парсинга вывода команды free -m (Memory Usage)
 function parseMemoryUsage(output) {
     const lines = output.trim().split('\n');
     const memoryData = [];
 
-    // Пропускаем заголовок (первая строка)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Разделяем строку по пробелам
         const parts = line.split(/\s+/);
         if (parts.length < 3) continue;
 
-        const type = parts[0].replace(':', ''); // Mem или Swap
+        const type = parts[0].replace(':', '');
         const memory = {
             type: type,
             total: parseInt(parts[1]),
             used: parseInt(parts[2]),
             free: parseInt(parts[3]),
-            // Для Mem есть дополнительные поля (shared, buff/cache, available)
+
             buffCache: type === 'Mem' ? parseInt(parts[5]) : 0
         };
         memoryData.push(memory);
@@ -164,30 +143,26 @@ function parseMemoryUsage(output) {
     return memoryData;
 }
 
-// Функция для парсинга вывода команды netstat -tuln (Open Ports)
 function parseOpenPorts(output) {
     const lines = output.trim().split('\n');
     const ports = [];
 
-    // Пропускаем заголовок (первые две строки)
     for (let i = 2; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Разделяем строку по пробелам
         const parts = line.split(/\s+/);
         if (parts.length < 5) continue;
 
-        // Извлекаем адрес и порт из Local Address
         const localAddressParts = parts[3].split(':');
         const address = localAddressParts.slice(0, -1).join(':'); // Всё до последнего двоеточия
         const port = localAddressParts[localAddressParts.length - 1];
 
         const portData = {
-            protocol: parts[0], // tcp или udp
+            protocol: parts[0],
             localAddress: address,
             port: port,
-            state: parts.length > 5 ? parts[5] : '' // Для UDP состояние пустое
+            state: parts.length > 5 ? parts[5] : ''
         };
         ports.push(portData);
     }
@@ -195,20 +170,17 @@ function parseOpenPorts(output) {
     return ports;
 }
 
-// Функция для выполнения теста скорости
 async function performSpeedTest() {
-    const testFileUrl = '/testfile.bin'; // Локальный тестовый файл (10 МБ)
-    const uploadTestUrl = '/api/upload'; // Эндпоинт для теста выгрузки
+    const testFileUrl = '/testfile.bin';
+    const uploadTestUrl = '/api/upload';
 
     try {
-        // Тест пинга
         console.log("Starting ping test...");
         const pingStart = Date.now();
         await fetch('https://www.google.com', { method: 'HEAD', mode: 'no-cors' });
         const ping = Date.now() - pingStart;
         console.log("Ping test completed:", ping, "ms");
 
-        // Тест скорости загрузки
         console.log("Starting download test...");
         const downloadStart = Date.now();
         const downloadResponse = await fetch(testFileUrl, { method: 'GET' });
@@ -217,14 +189,13 @@ async function performSpeedTest() {
         }
         const downloadData = await downloadResponse.blob();
         const downloadEnd = Date.now();
-        const downloadTime = (downloadEnd - downloadStart) / 1000; // Время в секундах
-        const downloadSize = downloadData.size / 1024 / 1024; // Размер в МБ
-        const downloadSpeed = (downloadSize * 8) / downloadTime; // Скорость в Мбит/с
+        const downloadTime = (downloadEnd - downloadStart) / 1000;
+        const downloadSize = downloadData.size / 1024 / 1024;
+        const downloadSpeed = (downloadSize * 8) / downloadTime;
         console.log("Download test completed:", downloadSpeed.toFixed(2), "Mbps");
 
-        // Тест скорости выгрузки
         console.log("Starting upload test...");
-        const uploadSize = 10; // Размер тестовых данных в МБ
+        const uploadSize = 10;
         const uploadStart = Date.now();
         const uploadData = new Blob([new ArrayBuffer(uploadSize * 1024 * 1024)]);
         const formData = new FormData();
@@ -238,8 +209,8 @@ async function performSpeedTest() {
             throw new Error(`Failed to upload test file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`);
         }
         const uploadEnd = Date.now();
-        const uploadTime = (uploadEnd - uploadStart) / 1000; // Время в секундах
-        const uploadSpeed = (uploadSize * 8) / uploadTime; // Скорость в Мбит/с
+        const uploadTime = (uploadEnd - uploadStart) / 1000;
+        const uploadSpeed = (uploadSize * 8) / uploadTime;
         console.log("Upload test completed:", uploadSpeed.toFixed(2), "Mbps");
 
         return {
@@ -253,7 +224,6 @@ async function performSpeedTest() {
     }
 }
 
-// Функция для отображения таблицы с графиками для Disk Usage
 function displayDiskUsageTable(disks, tableBody) {
     disks.forEach((disk, index) => {
         const row = document.createElement('tr');
@@ -307,7 +277,6 @@ function displayDiskUsageTable(disks, tableBody) {
     });
 }
 
-// Функция для отображения таблицы с графиками для Memory Usage
 function displayMemoryUsageTable(memoryData, tableBody) {
     memoryData.forEach((memory, index) => {
         const row = document.createElement('tr');
@@ -322,24 +291,20 @@ function displayMemoryUsageTable(memoryData, tableBody) {
         `;
         tableBody.appendChild(row);
 
-        // Данные для графика
         const used = memory.used;
         const free = memory.free;
         let data, labels, colors;
         if (memory.type === 'Mem') {
-            // Для Mem включаем buff/cache
             const buffCache = memory.buffCache;
             data = [used, free, buffCache];
             labels = ['Used', 'Free', 'Buff/Cache'];
             colors = ['#ff6384', '#36a2eb', '#ffcd56'];
         } else {
-            // Для Swap только Used и Free
             data = [used, free];
             labels = ['Used', 'Free'];
             colors = ['#ff6384', '#36a2eb'];
         }
 
-        // Создаём круговую диаграмму
         new Chart(document.getElementById(`memoryChart${index}`), {
             type: 'pie',
             data: {
@@ -375,7 +340,6 @@ function displayMemoryUsageTable(memoryData, tableBody) {
     });
 }
 
-// Функция для отображения таблицы с открытыми портами
 function displayOpenPortsTable(ports, tableBody) {
     ports.forEach((port) => {
         const row = document.createElement('tr');
@@ -391,9 +355,8 @@ function displayOpenPortsTable(ports, tableBody) {
     });
 }
 
-// Функция для отображения таблицы с результатами теста скорости
 function displaySpeedTestTable(speedData, tableBody) {
-    // Скорость загрузки
+
     const downloadRow = document.createElement('tr');
     downloadRow.innerHTML = `
         <td><i class="bi bi-download speed-download me-2"></i>Download Speed</td>
@@ -401,7 +364,6 @@ function displaySpeedTestTable(speedData, tableBody) {
     `;
     tableBody.appendChild(downloadRow);
 
-    // Скорость выгрузки
     const uploadRow = document.createElement('tr');
     uploadRow.innerHTML = `
         <td><i class="bi bi-upload speed-upload me-2"></i>Upload Speed</td>
@@ -409,7 +371,6 @@ function displaySpeedTestTable(speedData, tableBody) {
     `;
     tableBody.appendChild(uploadRow);
 
-    // Пинг
     const pingRow = document.createElement('tr');
     pingRow.innerHTML = `
         <td><i class="bi bi-clock speed-ping me-2"></i>Ping</td>
