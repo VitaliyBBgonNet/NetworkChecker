@@ -58,3 +58,10 @@ Before you begin, ensure you have the following installed:
     │   └── test/                         # Test files
     ├── pom.xml                           # Maven configuration
     └── README.md                         # Project documentation
+### Application features
+
+![Описание изображения](UI.png)
+![Описание изображения](DiskUsage.png)
+![Описание изображения](MemoryUsage.png)
+![Описание изображения](OpenPorts.png)
+![Описание изображения](TestInternetSpeed.png)
