@@ -1,0 +1,81 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    margin-top: 20px;
+}
+
+pre {
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.table {
+    margin-top: 10px;
+}
+
+.chart-container {
+    width: 150px; /* Уменьшенный размер графика */
+    height: 150px;
+}
+
+.chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Стили для иконок протоколов */
+.protocol-tcp {
+    color: #007bff; /* Синий для TCP */
+}
+
+.protocol-udp {
+    color: #28a745; /* Зелёный для UDP */
+}
+
+.state-listen {
+    color: #28a745; /* Зелёный для LISTEN */
+}
+
+.state-empty {
+    color: #6c757d; /* Серый для пустого состояния (UDP) */
+}
+
+/* Стили для теста скорости */
+.speed-download {
+    color: #007bff; /* Синий для скорости загрузки */
+}
+
+.speed-upload {
+    color: #28a745; /* Зелёный для скорости выгрузки */
+}
+
+.speed-ping {
+    color: #ffcd56; /* Жёлтый для пинга */
+}
+
+/* Стили для спиннера */
+#submitButton {
+    position: relative;
+}
+
+#loadingSpinner {
+    margin-left: 8px;
+}
+
+/* Улучшение таблицы для теста скорости */
+#speedTestTable .table {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#speedTestTable th,
+#speedTestTable td {
+    vertical-align: middle;
+}
+
+#speedTestTable i {
+    font-size: 1.2rem;
+}
