@@ -3,6 +3,7 @@ package com.networkchecker.controllers;
 import com.networkchecker.dto.CheckResponse;
 import com.networkchecker.networkService.NetService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -46,11 +47,24 @@ public class NetworkControllerREST {
         return response;
     }
 
+    @Value("${spring.servlet.multipart.max-file-size}")
+    private long maxFileSize;
+
     @PostMapping("/upload")
     public ResponseEntity<String> handleUpload(@RequestParam("file") MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body("No file uploaded");
         }
+
+        if (file.getSize() > maxFileSize) {
+            return ResponseEntity.badRequest().body("File is too large");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("text/")) {
+            return ResponseEntity.badRequest().body("Only text files are allowed");
+        }
+
         return ResponseEntity.ok("Upload successful");
     }
 }
