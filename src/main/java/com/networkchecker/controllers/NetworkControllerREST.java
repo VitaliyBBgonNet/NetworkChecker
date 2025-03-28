@@ -47,7 +47,7 @@ public class NetworkControllerREST {
         return response;
     }
 
-    @Value("${spring.servlet.multipart.max-file-size}")
+    @Value("${file.max-siz}")
     private long maxFileSize;
 
     @PostMapping("/upload")
