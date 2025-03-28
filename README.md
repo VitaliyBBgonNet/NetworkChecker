@@ -3,6 +3,8 @@
 NetworkChecker is a Spring Boot web application designed to monitor and diagnose network and system performance. It allows users to check host availability, execute SSH commands on remote servers, and perform internet speed tests. The application provides a user-friendly interface with support for light and dark themes, detailed visualizations, and a history of test results.
 ## Features
 
+## https://bbgon.isgood.host/
+
 - **Host Availability Check**: Verify if a host is reachable using ICMP ping.
 - **SSH Command Execution**: Run SSH commands on a remote server to retrieve system information:
     - Uptime (`uptime`)
